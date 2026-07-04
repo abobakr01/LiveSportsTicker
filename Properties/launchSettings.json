@@ -1,12 +1,30 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:5050",
+      "sslPort": 0
+    }
+  },
   "profiles": {
-    "http": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "LiveSportsTicker": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:5080",
+      "launchUrl": "",
+      "applicationUrl": "http://localhost:5050;https://localhost:7240",
       "environmentVariables": {
+        "ASPNETCORE_URLS": "http://localhost:5050;https://localhost:7240",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }

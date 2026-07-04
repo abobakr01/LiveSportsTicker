@@ -2,6 +2,9 @@ using LiveSportsTicker.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Listen on specific URLs so the app opens on the requested port when launched.
+builder.WebHost.UseUrls("http://localhost:5050", "https://localhost:7240");
+
 // MVC (controllers + Razor views)
 builder.Services.AddControllersWithViews();
 

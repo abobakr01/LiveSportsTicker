@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Live Sports Ticker
 
 Course: Advanced Web Development - Streaming (ASP.NET Core MVC)
@@ -8,7 +9,7 @@ and events to the browser the moment they happen, over a single continuously ope
 connection.
 
 ## Demo Video
-https://youtu.be/your-link  ← replace after recording (see submission guide below)
+https://youtu.be/feKiUBnEUnQ 
 
 ## Streaming
 - **Technique:** Server-Sent Events (SSE), via a plain `text/event-stream` response
@@ -62,3 +63,6 @@ wwwroot/css/site.css       Styling
 - [ ] Upload to YouTube (Unlisted) and paste the link above.
 - [ ] Push this repo to GitHub with a clean history (no `bin/`, `obj/`, secrets).
 - [ ] Submit the GitHub repository link.
+=======
+# LiveSportsTicker
+>>>>>>> 2fc017da7ab90309198d46a3a63b79fdfaad09d7
