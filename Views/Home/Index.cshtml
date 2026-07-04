@@ -1,0 +1,142 @@
+@{
+    ViewData["Title"] = "Live Sports Ticker";
+    string homeTeam = ViewBag.HomeTeam;
+    string awayTeam = ViewBag.AwayTeam;
+}
+
+<div class="wrap">
+    <header>
+        <h1>⚽ Live Sports Ticker</h1>
+        <div class="status-row">
+            <span id="connDot" class="dot connecting"></span>
+            <span id="connText">Connecting…</span>
+            <button id="killBtn" class="btn btn-danger">Kill Connection (simulate drop)</button>
+        </div>
+    </header>
+
+    <section class="scoreboard">
+        <div class="team">
+            <div class="team-name">@homeTeam</div>
+            <div class="score" id="scoreHome">0</div>
+        </div>
+        <div class="clock">
+            <div id="minute">0'</div>
+            <div class="minute-label">MIN</div>
+        </div>
+        <div class="team">
+            <div class="team-name">@awayTeam</div>
+            <div class="score" id="scoreAway">0</div>
+        </div>
+    </section>
+
+    <section class="winprob">
+        <h2>Live Win Probability <span class="smart-tag">smart stream</span></h2>
+        <div class="bar">
+            <div id="barHome" class="bar-segment home">0%</div>
+            <div id="barDraw" class="bar-segment draw">0%</div>
+            <div id="barAway" class="bar-segment away">0%</div>
+        </div>
+        <div class="bar-labels">
+            <span>@homeTeam</span>
+            <span>Draw</span>
+            <span>@awayTeam</span>
+        </div>
+    </section>
+
+    <section class="feed">
+        <h2>Live Event Feed</h2>
+        <ul id="eventList"></ul>
+    </section>
+</div>
+
+<script>
+    const homeTeam = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(homeTeam));
+    const awayTeam = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(awayTeam));
+
+    const eventList   = document.getElementById('eventList');
+    const scoreHomeEl = document.getElementById('scoreHome');
+    const scoreAwayEl = document.getElementById('scoreAway');
+    const minuteEl    = document.getElementById('minute');
+    const barHome     = document.getElementById('barHome');
+    const barDraw     = document.getElementById('barDraw');
+    const barAway     = document.getElementById('barAway');
+    const connDot     = document.getElementById('connDot');
+    const connText    = document.getElementById('connText');
+    const killBtn     = document.getElementById('killBtn');
+
+    let lastEventId = 0;
+    let source = null;
+
+    const ICONS = {
+        kickoff: '🏁', goal: '⚽', yellowcard: '🟨', redcard: '🟥',
+        substitution: '🔄', halftime: '⏸️', fulltime: '🏆', commentary: '💬'
+    };
+
+    function setStatus(state, text) {
+        connDot.className = 'dot ' + state;
+        connText.textContent = text;
+    }
+
+    function renderEvent(evt) {
+        lastEventId = evt.id;
+
+        scoreHomeEl.textContent = evt.scoreHome;
+        scoreAwayEl.textContent = evt.scoreAway;
+        minuteEl.textContent = evt.minute + "'";
+
+        barHome.style.width = evt.homeWinProbability + '%';
+        barDraw.style.width = evt.drawProbability + '%';
+        barAway.style.width = evt.awayWinProbability + '%';
+        barHome.textContent = evt.homeWinProbability + '%';
+        barDraw.textContent = evt.drawProbability + '%';
+        barAway.textContent = evt.awayWinProbability + '%';
+
+        const li = document.createElement('li');
+        const typeKey = String(evt.type).toLowerCase();
+        li.className = 'evt evt-' + typeKey;
+        li.innerHTML =
+            '<span class="evt-min">' + evt.minute + "'</span>" +
+            '<span class="evt-icon">' + (ICONS[typeKey] || '•') + '</span>' +
+            '<span class="evt-desc">' + evt.description + '</span>';
+        eventList.prepend(li);
+
+        // Cap the DOM list so a long-running match doesn't grow forever.
+        while (eventList.children.length > 60) {
+            eventList.removeChild(eventList.lastChild);
+        }
+    }
+
+    function connect(resumeFromId) {
+        setStatus('connecting', 'Connecting…');
+
+        const url = resumeFromId
+            ? '/Stream/Live?lastEventId=' + resumeFromId
+            : '/Stream/Live';
+
+        source = new EventSource(url);
+
+        source.addEventListener('open', () => {
+            setStatus('live', resumeFromId ? 'Reconnected — resumed live' : 'Live');
+        });
+
+        source.addEventListener('matchEvent', (e) => {
+            const evt = JSON.parse(e.data);
+            renderEvent(evt);
+        });
+
+        source.addEventListener('error', () => {
+            // Native EventSource retries automatically; we just reflect status in the UI.
+            setStatus('connecting', 'Connection lost — reconnecting…');
+        });
+    }
+
+    // Manual "kill connection" demo: closes the stream, then reopens it a moment later,
+    // passing the last event id we saw so the server replays anything we missed.
+    killBtn.addEventListener('click', () => {
+        if (source) source.close();
+        setStatus('down', 'Connection killed. Reconnecting in 3s…');
+        setTimeout(() => connect(lastEventId), 3000);
+    });
+
+    connect(0);
+</script>
